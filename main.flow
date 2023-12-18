@@ -12,54 +12,16 @@ Statement ::= Assignement, Sequence, Test, NonDetChoice, NonDetIteration;
     NonDetChoice(choice: [Statement]);
     NonDetIteration(iteratee: Statement);
 
-buildNonDetChoice(stat1: Statement, stat2: Statement, others: [Statement]) -> NonDetChoice {
-    NonDetChoice(concat([stat1, stat2], others));
-}
 
 
+FuncArgs(args: [Expr]);
 Expr ::= Sum, Mult, Int, Id, FunctionCall, ArrayConst;
-    ArrayConst(values: [Expr]);
+    ArrayConst(elems: [Expr]);
     Sum(lhs : Expr, rhs : Expr);
     Mult(lhs : Expr, rhs : Expr);
     Int(val: int);
-    FunctionCall(funcName: string, args: [Expr]);
+    FunctionCall(funcName: string, args: FuncArgs);
     Id(name: string);
-
-makeArrayConst1(maybeArgs: [[Expr]]) -> ArrayConst {
-    if (length(maybeArgs) == 0) {
-        ArrayConst([]);
-    } else {
-        ArrayConst(maybeArgs[0]);
-    }
-}
-
-makeArrayConst2(expr: Expr, leftovers: [Expr]) -> [Expr] {
-    concat([expr], leftovers);
-}
-
-makeFuncArg0() -> [Expr] {
-    [];
-}
-
-makeFuncArgExprArr(expr: Expr, others: [Expr]) -> [Expr] {
-    concat([expr], others);
-}
-
-makeFuncArgExpr(expr: Expr) -> [Expr] {
-    [expr];
-}
-
-astToString(program: Program) -> string {
-    "{decls: [" + strGlue(map(program.varDecls.decls, declToStr), ", ") + "], stat: {" + statToStr(program.statement) + "}";
-}
-
-declToStr(decl: VarDecl) -> string {
-    "decl...";
-}
-
-statToStr(stat: Statement) -> string {
-    "stat...";
-}
 
 
 stringToAst(str : string) -> Program {
@@ -82,8 +44,10 @@ lingoGrammar() {
 	});
 }
 
-main() {
+mainCock() {
     programText = getFileContent("./program.nemo");
-    expr1 = stringToAst(programText);
-    println(astToString(expr1));
+    expr1 : Program = stringToAst(programText);
+    println(expr1);
 }
+
+// flowcpp --no-jit ../../lib/lingo/pegcode/pegcompiler.flow -- file=./nemo.lingo testfile=program.nemo result=1
