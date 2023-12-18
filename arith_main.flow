@@ -1,0 +1,50 @@
+// import lingo/pegcode/driver;
+// import string;
+
+// ArExpr ::= ArSum, ArMult, ArInt;
+//     ArSum(lhs : ArExpr, rhs : ArExpr);
+//     ArMult(lhs : ArExpr, rhs : ArExpr);
+//     ArInt(val: int);
+
+// treeToInt(exp : ArExpr) -> int {
+//     switch (exp) {
+//         ArInt(val): {
+//             val;
+//         };
+//         ArSum(lhs, rhs): {
+//             treeToInt(lhs) + treeToInt(rhs);
+//         }
+//         ArMult(lhs, rhs): {
+//             treeToInt(lhs) * treeToInt(rhs);
+//         }
+//     }
+// }
+
+// treeToBackwardsPolish(exp : ArExpr) -> string {
+//     switch (exp) {
+//         ArInt(val): {
+//             i2s(val);
+//         };
+//         ArSum(lhs, rhs): {
+//             strGlue(["(", treeToBackwardsPolish(lhs), treeToBackwardsPolish(rhs), "+)"], " ");
+//         }
+//         ArMult(lhs, rhs): {
+//             strGlue(["(", treeToBackwardsPolish(lhs), treeToBackwardsPolish(rhs), "*)"], " ");
+//         }
+//     }
+// }
+
+// s2ar(str : string) -> ArExpr {
+//     e_gr = "#include arith.lingo";
+//     parsic(
+//         compilePegGrammar(e_gr), 
+//         str,
+//         SemanticActions(setTree(defaultPegActions.t, "createArInt", \s -> ArInt(s2i(s[0]))))
+//     )
+// }
+
+// main() {
+//     expr1 = s2ar("(1 + (3 * 2))");
+//     println(i2s(treeToInt(expr1)));
+//     println(treeToBackwardsPolish(expr1));
+// }

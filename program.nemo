@@ -1,0 +1,7 @@
+VAR  x: int;
+VAR y: string;
+VAR obj: Object;
+
+{
+    x := 1;
+}

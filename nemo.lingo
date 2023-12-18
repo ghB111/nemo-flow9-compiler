@@ -1,0 +1,45 @@
+program = varDeclSection:varDeclSection statement:stat { Program(:varDeclSection, :stat) };
+
+varDeclSection = (varDecl)*:decls { VarDeclSection(:decls) };
+varDecl = "VAR" ws id$varName ws ":"  ws id$varType ws statementEnd { VarDecl($varName, $varType) } ;
+
+statementEnd = ";" ws;
+
+statement = assignement
+     | sequence
+     | test
+     | nonDetChoice
+     | nonDetIteration;
+
+
+assignement = id$varName ws ":=" ws expr:value ws statementEnd { Assignement($varName, :value) };
+sequence = "{" (statement)*:seq "}" { Sequence(:seq) };
+test = expr:pred ws "?" ws statementEnd { Test(:pred) };
+nonDetChoice = "{" ws statement:stat1 ws U ws statement:stat2 ws (ws U ws statement)*:stats"}" { buildNonDetChoice(:stat1, :stat2, :stats) };
+nonDetIteration = "{" ws statement:stat ws "}" ws "*" { NonDetIteration(:stat) };
+
+U = ws "U" ws;
+
+expr = sum | mul | int | id | functionCall | arrayConst;
+
+arrayConst = "[" ws (arrayContent)?:arr ws "]" { makeArrayConst1(:arr) };
+arrayContent = expr:elem ws arrayLeftover*:leftovers { makeArrayConst2(:elem, :leftovers) };
+arrayLeftover = (ws "," ws expr:val) { :val };
+
+functionCall = id:funcName ws "(" ws funcArgs:args ws ")" { FunctionCall(:funcName, :args) };
+funcArgs = emptyArgs | nonEmptyArgs;
+emptyArgs = () { makeFuncArg0() };
+nonEmptyArgs = onlyArg | severalArgs;
+severalArgs = expr:arg ws "," ws nonEmptyArgs:args { makeFuncArgExprArr(:arg, :args) } ;
+onlyArg = expr:arg { makeFuncArgExpr(:arg) };
+
+sum = "(" ws expr:l ws "+" ws expr:r ws ")" { Sum(:l, :r)};
+mul = "(" ws expr:l ws "*" ws expr:r ws ")" { Mult(:l, :r)};
+int = digit+ $s { Int(s2i($s)) };
+
+
+digit = '0'-'9';
+ws = (' ' | '\t' | '\n' | '\r')*;
+id = (('a'-'z' | 'A'-'Z') ('a'-'z' | 'A' - 'Z' | '0' -'9')*) $id { Id($id) };
+
+

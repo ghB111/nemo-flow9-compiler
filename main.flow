@@ -1,0 +1,89 @@
+import lingo/pegcode/driver;
+import runtime;
+import string;
+
+Program(varDecls: VarDeclSection, statement: Statement);
+VarDeclSection(decls: [VarDecl]);
+VarDecl(varName: string, varType: string);
+Statement ::= Assignement, Sequence, Test, NonDetChoice, NonDetIteration;
+    Assignement(varName: string, value: Expr);
+    Sequence(sequence: [Statement]);
+    Test(pred: Expr);
+    NonDetChoice(choice: [Statement]);
+    NonDetIteration(iteratee: Statement);
+
+buildNonDetChoice(stat1: Statement, stat2: Statement, others: [Statement]) -> NonDetChoice {
+    NonDetChoice(concat([stat1, stat2], others));
+}
+
+
+Expr ::= Sum, Mult, Int, Id, FunctionCall, ArrayConst;
+    ArrayConst(values: [Expr]);
+    Sum(lhs : Expr, rhs : Expr);
+    Mult(lhs : Expr, rhs : Expr);
+    Int(val: int);
+    FunctionCall(funcName: string, args: [Expr]);
+    Id(name: string);
+
+makeArrayConst1(maybeArgs: [[Expr]]) -> ArrayConst {
+    if (length(maybeArgs) == 0) {
+        ArrayConst([]);
+    } else {
+        ArrayConst(maybeArgs[0]);
+    }
+}
+
+makeArrayConst2(expr: Expr, leftovers: [Expr]) -> [Expr] {
+    concat([expr], leftovers);
+}
+
+makeFuncArg0() -> [Expr] {
+    [];
+}
+
+makeFuncArgExprArr(expr: Expr, others: [Expr]) -> [Expr] {
+    concat([expr], others);
+}
+
+makeFuncArgExpr(expr: Expr) -> [Expr] {
+    [expr];
+}
+
+astToString(program: Program) -> string {
+    "{decls: [" + strGlue(map(program.varDecls.decls, declToStr), ", ") + "], stat: {" + statToStr(program.statement) + "}";
+}
+
+declToStr(decl: VarDecl) -> string {
+    "decl...";
+}
+
+statToStr(stat: Statement) -> string {
+    "stat...";
+}
+
+
+stringToAst(str : string) -> Program {
+    parsic(
+        lingoGrammar(), 
+        str,
+        defaultPegActions
+        // SemanticActions(setTree(defaultPegActions.t, "createProgram", \s -> ArInt(s[0])))
+    );
+}
+
+// Singleton keeping the compiled grammar
+lingoGrammarOp : ref Maybe<[PegOp]> = ref None();
+
+lingoGrammar() {
+	// Prepare the grammar in the given file using flow syntax for inlining a string from a file
+	// but be sure to only do this once
+	onlyOnce(lingoGrammarOp, \ -> {
+		compilePegGrammar("#include ./nemo.lingo");
+	});
+}
+
+main() {
+    programText = getFileContent("./program.nemo");
+    expr1 = stringToAst(programText);
+    println(astToString(expr1));
+}
