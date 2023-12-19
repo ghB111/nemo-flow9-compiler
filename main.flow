@@ -14,11 +14,20 @@ Statement ::= Assignement, Sequence, Test, NonDetChoice, NonDetIteration;
 
 
 
+BinaryOp ::= Sum, Minus, Mult, Div, MoreThan, MoreThanEqual, LessThan, LessThanEqual, Equal;
+    Sum();
+    Minus();
+    Mult();
+    Div();
+    MoreThan();
+    MoreThanEqual();
+    LessThan();
+    LessThanEqual();
+    Equal();
 FuncArgs(args: [Expr]);
-Expr ::= Sum, Mult, Int, Id, FunctionCall, ArrayConst;
+Expr ::= Int, Id, FunctionCall, ArrayConst;
     ArrayConst(elems: [Expr]);
-    Sum(lhs : Expr, rhs : Expr);
-    Mult(lhs : Expr, rhs : Expr);
+    ArithExpr(lhs: Expr, rhs: Expr, op: BinaryOp);
     Int(val: int);
     FunctionCall(funcName: string, args: FuncArgs);
     Id(name: string);

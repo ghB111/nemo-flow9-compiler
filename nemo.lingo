@@ -20,7 +20,7 @@ nonDetIteration = "{" ws statement:stat ws "}" /*no ws*/ "*" ws { NonDetIteratio
 
 U = ws "U" ws;
 
-expr = sum | mul | int | functionCall | arrayConst | id;
+expr = arithExpr | int | functionCall | arrayConst | id;
 
 arrayConst = arrayEmpty | "[" ws arrayContent:cont ws "]" { :cont } ;
 arrayContent =  expr:elem ws leftover*:leftovers { ArrayConst(consArray(:elem, :leftovers)) };
@@ -31,8 +31,22 @@ functionCall = id$funcName ws "(" ws funcArgs:args ws ")" { FunctionCall($funcNa
 funcArgs = nonEmptyArgs | () { FuncArgs(emptyArray()) } ;
 nonEmptyArgs = expr:arg ws leftover*:leftovers { FuncArgs(consArray(:arg, :leftovers)) } ; 
 
-sum = "(" ws expr:l ws "+" ws expr:r ws ")" { Sum(:l, :r)};
-mul = "(" ws expr:l ws "*" ws expr:r ws ")" { Mult(:l, :r)};
+
+arithExpr = "(" ws expr:l ws binaryOp:op ws expr:r ws ")" { ArithExpr(:l, :r, :op) } ;
+
+// minus will be parsed incorrectly
+binaryOp = plus | minus | mult | div | moreThan | moreThanEqual | lessThan | lessThanEqual | equal;
+plus = "+" { Sum() };
+minus = "-" { Minus() };
+mult = "*" { Mult() };
+div = "/" { Div() };
+moreThan = ">" { MoreThan() };
+moreThanEqual = ">=" { MoreThanEqual() };
+lessThan = "<" { LessThan() };
+lessThanEqual = "<=" { LessThanEqual() };
+equal = "==" { Equal() };
+
+
 int = digit+ $s { Int(s2i($s)) };
 
 

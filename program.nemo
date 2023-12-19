@@ -24,4 +24,5 @@ VAR myArr: array;
 
     { myVar := 2; }*
 
+    ((x * 6) > 0)?;
 }
