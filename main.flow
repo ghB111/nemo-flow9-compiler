@@ -53,10 +53,37 @@ lingoGrammar() {
 	});
 }
 
-mainCock() {
+
+VmText(commands: [VmCommand]);
+VmCommand ::= AssignementCommand, BranchCommand;
+    AssignementCommand(label: int, lhsName: string, newVal: Expr, gotos: [int]);
+    BranchCommand(label: int, cond: Expr, thens: [int], elses: [int]);
+
+maxLabel(text: VmText) -> int {
+    fold(text.commands, -1, \maxLabel, nextInstruction ->  {
+            switch
+        }
+    )
+}
+
+shiftLabels(text: VmText, delta: int) -> VmText {
+    // todo
+}
+
+substituteLabels(text: VmText, oldLabel: int, newLabel: int) -> VmText {
+
+}
+
+compile(ast: Program) -> string {
+    // notypechecking for now
+
+}
+
+main() {
     programText = getFileContent("./program.nemo");
-    expr1 : Program = stringToAst(programText);
-    println(expr1);
+    ast : Program = stringToAst(programText);
+    println("AST:");
+    println(ast);
 }
 
 // flowcpp --no-jit ../../lib/lingo/pegcode/pegcompiler.flow -- file=./nemo.lingo testfile=program.nemo result=1
