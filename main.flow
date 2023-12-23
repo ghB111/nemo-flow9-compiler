@@ -61,22 +61,29 @@ VmCommand ::= AssignementCommand, BranchCommand;
 
 maxLabel(text: VmText) -> int {
     fold(text.commands, -1, \maxLabel, nextInstruction ->  {
-            switch
+            switch(nextInstruction) {
+                AssignementCommand(label, lhsName, newVal, gotos): {
+                    if (label > maxLabel) label else maxLabel
+                }
+                BranchCommand(label, cond, thens, elses): {
+                    if (label > maxLabel) label else maxLabel
+                }
+            }
         }
     )
 }
 
-shiftLabels(text: VmText, delta: int) -> VmText {
-    // todo
-}
+// shiftLabels(text: VmText, delta: int) -> VmText {
+//     // todo
+// }
 
-substituteLabels(text: VmText, oldLabel: int, newLabel: int) -> VmText {
+// substituteLabels(text: VmText, oldLabel: int, newLabel: int) -> VmText {
 
-}
+// }
 
 compile(ast: Program) -> string {
     // notypechecking for now
-
+    "todo"
 }
 
 main() {
@@ -84,6 +91,9 @@ main() {
     ast : Program = stringToAst(programText);
     println("AST:");
     println(ast);
+
+    println("compiled:");
+    println(compile(ast));
 }
 
 // flowcpp --no-jit ../../lib/lingo/pegcode/pegcompiler.flow -- file=./nemo.lingo testfile=program.nemo result=1
