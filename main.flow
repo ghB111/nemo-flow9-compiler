@@ -25,12 +25,14 @@ BinaryOp ::= Sum, Minus, Mult, Div, MoreThan, MoreThanEqual, LessThan, LessThanE
     LessThanEqual();
     Equal();
 FuncArgs(args: [Expr]);
-Expr ::= Int, Id, FunctionCall, ArrayConst;
+Expr ::= Int, Id, FunctionCall, ArrayConst, True, False;
     ArrayConst(elems: [Expr]);
     ArithExpr(lhs: Expr, rhs: Expr, op: BinaryOp);
     Int(val: int);
     FunctionCall(funcName: string, args: FuncArgs);
     Id(name: string);
+    True();
+    False();
 
 
 stringToAst(str : string) -> Program {
@@ -60,7 +62,7 @@ VmCommand ::= AssignementCommand, BranchCommand;
     BranchCommand(label: int, cond: Expr, thens: [int], elses: [int]);
 
 maxLabel(text: VmText) -> int {
-    fold(text.commands, -1, \maxLabel, nextInstruction ->  {
+    1 + fold(text.commands, -1, \maxLabel, nextInstruction ->  {
             switch(nextInstruction) {
                 AssignementCommand(label, lhsName, newVal, gotos): {
                     if (label > maxLabel) label else maxLabel
@@ -73,21 +75,108 @@ maxLabel(text: VmText) -> int {
     )
 }
 
-// shiftLabels(text: VmText, delta: int) -> VmText {
-//     // todo
-// }
+shiftLabels(text: VmText, delta: int) -> VmText {
+    VmText(
+        map(
+            text.commands,
+            \command -> {
+                switch(command) {
+                    AssignementCommand(label, lhsName, newVal, gotos): {
+                        AssignementCommand(label + delta, lhsName, newVal, shiftArr(gotos, delta))
+                    }
+                    BranchCommand(label, cond, thens, elses): {
+                        BranchCommand(label + delta, cond, shiftArr(thens, delta), shiftArr(elses, delta))
+                    }
+                }
+            }
+        )
+    )
+}
 
-// substituteLabels(text: VmText, oldLabel: int, newLabel: int) -> VmText {
+substituteLabels(text: VmText, oldLabel: int, newLabel: int) -> VmText {
+    VmText(
+        map(
+            text.commands,
+            \command -> {
+                switch(command) {
+                    AssignementCommand(label, lhsName, newVal, gotos): {
+                        AssignementCommand(subst(label, oldLabel, newLabel), lhsName, newVal, map(gotos, \x -> subst(x, oldLabel, newLabel)))
+                    }
+                    BranchCommand(label, cond, thens, elses): {
+                        BranchCommand(subst(label, oldLabel, newLabel), cond, map(thens, \x -> subst(x, oldLabel, newLabel)), map(elses, \x -> subst(x, oldLabel, newLabel)))
+                    }
+                }
+            }
+        )
+    )
+}
 
-// }
+shiftArr(labels: [int], delta: int) {
+    map(labels, \x -> x + delta)
+}
 
-compile(ast: Program) -> string {
-    // notypechecking for now
-    "todo"
+subst(cur: int, old: int, new: int) -> int {
+    if (cur == old) {
+        new
+    } else {
+        cur
+    }
+}
+
+    // AssignementCommand(label: int, lhsName: string, newVal: Expr, gotos: [int]);
+    // BranchCommand(label: int, cond: Expr, thens: [int], elses: [int]);
+    // NonDetChoice(choice: [Statement]);
+    // NonDetIteration(iteratee: Statement);
+compileStatement(stat: Statement) -> VmText {
+    switch(stat) {
+        Assignement(varName, value): {
+            VmText([AssignementCommand(0, varName, value, [1])])
+        }
+        Sequence(sequence): {
+            if (length(sequence) == 0) {
+                VmText([BranchCommand(0, True(), [], [])])
+            } else {
+                first = compileStatement(sequence[0]);
+                fold(tail(sequence), first, \acc, next -> {
+                    end = maxLabel(acc);
+                    nextCompiled = shiftLabels(compileStatement(next), end);
+                    VmText(concat(acc.commands, nextCompiled.commands))
+                })
+            }
+        }
+        Test(pred): {
+            VmText([BranchCommand(0, pred, [1], [])])
+        }
+        NonDetChoice(choice): {
+            first = compileStatement(choice[0]); // always non empty by grammar
+            fold(tail(choice), first, \acc, next -> {
+                s = shiftLabels(acc, 1);
+                end = maxLabel(s);
+                nextCompiled = shiftLabels(compileStatement(next), end);
+                end2 = maxLabel(nextCompiled);
+                VmText(
+                    concat3(
+                        [BranchCommand(0, True(), [1, end], [])],
+                        substituteLabels(acc, end, end2).commands,
+                        nextCompiled.commands
+                    )
+                )
+            })
+        }
+        NonDetIteration(iteratee): {
+            s = shiftLabels(compileStatement(iteratee), 1);
+            end = maxLabel(s);
+            VmText(concat([BranchCommand(0, True(), [1, end], [])], substituteLabels(s, end, 0).commands))
+        }
+    }
+}
+
+compile(ast: Program) -> VmText {
+    compileStatement(ast.statement)
 }
 
 main() {
-    programText = getFileContent("./program.nemo");
+    programText = getFileContent("./program1.nemo");
     ast : Program = stringToAst(programText);
     println("AST:");
     println(ast);

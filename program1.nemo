@@ -1,0 +1,28 @@
+
+VAR x: int;
+
+
+VAR y: string;
+
+VAR obj: Object;
+
+VAR myArr: array;
+
+{
+
+    x := 1;
+
+    obj := 1;
+
+    myArr := [ [1,2,3], [4,(2+ 3)] ] ;
+
+    myARr1 := upd ( myArr, 32, (2301 + 1321) ) ;
+
+    myArr := myArr1;
+
+    { {myX := 1;} U myY := 2;}
+
+    { myVar := 2; }*
+
+    ((x * 6) > 0)?;
+}
