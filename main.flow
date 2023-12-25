@@ -172,7 +172,57 @@ compileStatement(stat: Statement) -> VmText {
 }
 
 compile(ast: Program) -> VmText {
+    assertVarsUnique(st.varDecls.decls);
+    typeCheck(ast.varDecls.decls, ast.statement);
     compileStatement(ast.statement)
+}
+
+assertVarsUnique(vars: [VarDecl]) -> void {
+    if (length(vars) <= 1) {
+        return;
+    }
+
+    fold(tail(vars), [vars[0]], \acc, next -> {
+        if (findi(acc, \x -> x.varName == next.varName) != None()) {
+            println("Error: two variables with same name")
+        }
+        concat([next], acc)
+    });
+    {}
+}
+
+typeCheck(decls: [VarDecl], stat: Statement) -> void {
+    switch(stat) {
+        Assignement(varName, value): {
+            
+        }
+        Sequence(sequence): {
+            if (length(sequence) == 0) {
+                return;
+            } else {
+                map(sequence, \s -> {
+                    typeCheck(decls, s);
+                    {}
+                });
+                {}
+            }
+        }
+        Test(pred): {
+            return;
+        }
+        NonDetChoice(choice): {
+            map(choice, \s -> {
+                typeCheck(decls, s);
+                {}
+            })
+        }
+        NonDetIteration(iteratee): {
+            map(iteratee, \s -> {
+                typeCheck(decls, s);
+                {}
+            })
+        }
+    }
 }
 
 main() {
